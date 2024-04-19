@@ -2,7 +2,6 @@ import React, { useEffect, useState } from 'react';
 import { View, Text, FlatList, ActivityIndicator, Image, StyleSheet } from 'react-native';
 import axios from '../server/api'
 import MovieItem from './components/MovieItem';
-import { baseURL } from '../server/env';
 function MoviesScreen() {
     const [movies, setMovies] = useState([
         {
@@ -30,37 +29,41 @@ function MoviesScreen() {
     const [loading, setLoading] = useState(false);
 
     useEffect(() => {
-        // fetchMovies(); 
+        fetchPosts();
     }, []);
-    const fetchData = async () => {
-        const config = {
-            baseURL: baseURL,
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${''}`
-              }
-          }; 
-          const moviesApi = axios(config); 
-          moviesApi.get('/titles')
-            .then(data => console.log(data))
-            .catch(error => console.error(error));
+    const fetchPosts = async () => {
+        try {
+            setLoading(true)
+            // const headers = {
+            //   'Content-Type': 'text/plain' // Overriding the default JSON type
+            // };
+            //  await axios.get('posts/1', { headers });
+            await axios.get('posts').then((response) => {
+                console.log('Fetched Data:', response.data);
+                setLoading(false)  
+            })
+        } catch (error) {
+            console.error('Failed to fetch data:', error);
+            setLoading(false)
+            throw error;
+        }
     };
-
-    if (loading) {
-        return <ActivityIndicator size="large" color="#0000ff" />;
-    }
 
     return (
         <View style={styles.container}>
             <View style={styles.header}>
                 <Text style={styles.headerText}>Movies List</Text>
-
             </View>
             <FlatList
                 data={movies}
-                keyExtractor={item => item.imdbID}
+                keyExtractor={item => item.id}
                 renderItem={({ item }) => <MovieItem movie={item} />}
             />
+            {loading && (
+                <View style={styles.loader}>
+                    <ActivityIndicator size="large" color="#0000ff" />
+                </View>
+            )}
         </View>
     );
 }
@@ -116,6 +119,16 @@ const styles = StyleSheet.create({
         color: '#888',
         marginTop: 5,
     },
+    loader : {
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        justifyContent: 'center',
+        alignItems: 'center',
+        backgroundColor: 'rgba(0,0,0,0.3)' // Optional: Dimming background
+    }
 });
 
 export default MoviesScreen;

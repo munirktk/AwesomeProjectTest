@@ -1,1 +1,1 @@
-export const baseURL = 'https://moviesdatabase.p.rapidapi.com/';
+export const baseURL = 'https://jsonplaceholder.typicode.com/';
