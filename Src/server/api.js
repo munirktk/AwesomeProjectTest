@@ -1,7 +1,12 @@
 import axios from 'axios';
 import { baseURL } from './env';
 import { refreshToken } from './auth';
-// Define the base configuration for the Axios instance
+
+const isTokenExpired = (token) => {
+  const { expiry } = token;
+  return Date.now() >= expiry;
+};
+// Define the base configuration for the Axios instance 
 const defaultConfig = {
   baseURL: baseURL,
   headers: {
@@ -49,16 +54,17 @@ const createApiInstance = (configOverrides = {}) => {
     },
     async error => {
       const originalRequest = error.config;
-      if (error.response.status === 401 && !originalRequest._retry) {
-        originalRequest._retry = true;
+      if (error.response.status === 401 && !originalRequest._retry && isTokenExpired()) {
+        originalRequest._retry = true; // Mark this request as retried 
         try {
-          const newToken = await refreshToken();
-          originalRequest.headers['Authorization'] = `Bearer ${newToken}`;
-          return instance(originalRequest);
+            const newToken = await refreshToken(); // Attempt to refresh the token
+            originalRequest.headers['Authorization'] = `Bearer ${newToken}`; // Update the request's header
+            return axiosInstance(originalRequest); // Retry the original request with the new token
         } catch (refreshError) {
-          return Promise.reject(refreshError);
+            console.error('Failed to refresh token:', refreshError);
+            return Promise.reject(refreshError); // If token refresh fails, pass the error along
         }
-      }
+    }
       console.error('API Error:', error.response);
       return Promise.reject(error);
     }
