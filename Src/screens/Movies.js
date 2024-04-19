@@ -41,6 +41,7 @@ function MoviesScreen() {
             await axios.get('posts').then((response) => {
                 console.log('Fetched Data:', response.data);
                 setLoading(false)  
+                // setMovies(response.data)
             })
         } catch (error) {
             console.error('Failed to fetch data:', error);
@@ -56,7 +57,7 @@ function MoviesScreen() {
             </View>
             <FlatList
                 data={movies}
-                keyExtractor={item => item.id}
+                keyExtractor={item => item.imdbID}
                 renderItem={({ item }) => <MovieItem movie={item} />}
             />
             {loading && (
